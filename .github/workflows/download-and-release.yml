@@ -1,0 +1,45 @@
+name: Download PixelOS and Upload to Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Install aria2
+        run: |
+          sudo apt update
+          sudo apt install -y aria2
+
+      - name: Download PixelOS (SourceForge)
+        run: |
+          mkdir -p downloads
+          cd downloads
+
+          aria2c \
+            --file-allocation=trunc \
+            --continue=false \
+            --summary-interval=5 \
+            --console-log-level=notice \
+            --auto-file-renaming=false \
+            --retry-wait=5 \
+            --max-tries=5 \
+            --timeout=60 \
+            --connect-timeout=30 \
+            "https://master.dl.sourceforge.net/project/pixelos-releases/thirteen/surya/PixelOS_surya-13.0-20230706-1536.zip?viasf=1"
+
+      - name: Upload EXISTING file to GitHub Release (FAST)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pixelos-surya-13
+          name: PixelOS Surya Android 13
+          body: |
+            PixelOS Surya Android 13 build  
+            Source: SourceForge  
+            Uploaded via GitHub Actions (no re-download)
+          files: downloads/PixelOS_surya-13.0-20230706-1536.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
